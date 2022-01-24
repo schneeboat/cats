@@ -1,0 +1,20 @@
+SELECT AVG(diff) AS "avg" 
+FROM (
+SELECT user_id
+,MAX(case when occ = 1 then visit_date else null end) as "occ1"
+,MAX(case when occ = 2 then visit_date else null end)as "occ2"
+,occ2-occ1 as "diff"
+FROM(
+	SELECT *
+	FROM(
+		SELECT *,  occ = ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY visit_date)
+	FROM(
+		SELECT user_id,visit_date
+		FROM Visit t1  
+		LEFT JOIN User t2
+		ON t2.id  = t1.user_id
+		WHERE t2.email like ('%@gmail.com'))t3
+)t4
+ WHERE t4.occ <= 2
+)t5
+GROUP BY t5.user_id)t6
